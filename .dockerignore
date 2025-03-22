@@ -1,0 +1,13 @@
+.git
+.gitignore
+.github
+target
+docs
+README.md
+README.adoc
+LICENSE
+LICENSE.txt
+.quarkus
+infrastructure
+deployment/scripts
+deployment/Dockerfile 
