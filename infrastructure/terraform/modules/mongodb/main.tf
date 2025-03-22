@@ -6,11 +6,13 @@ terraform {
   }
 }
 
-# Add IP access list entry
-resource "mongodbatlas_project_ip_access_list" "main" {
+# Add IP access list entries for ECS subnets
+resource "mongodbatlas_project_ip_access_list" "ecs_subnets" {
+  for_each = toset(var.private_subnet_cidrs)
+  
   project_id = mongodbatlas_project.main.id
-  ip_address = "200.37.188.250"
-  comment    = "Terraform deployment IP"
+  cidr_block = each.value
+  comment    = "ECS task subnet CIDR"
 }
 
 resource "mongodbatlas_project" "main" {
@@ -23,7 +25,7 @@ resource "mongodbatlas_cluster" "main" {
   name         = "${var.project_name}-${var.environment}"
   provider_name = "AWS"
   provider_region_name = "US_WEST_2"
-  provider_instance_size_name = "M10"
+  provider_instance_size_name = var.instance_size
   mongo_db_major_version = var.mongodb_version
 
   tags {
@@ -76,7 +78,7 @@ resource "aws_security_group" "mongodb" {
     from_port   = 27017
     to_port     = 27017
     protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr]
+    cidr_blocks = var.private_subnet_cidrs
   }
 
   egress {
@@ -93,9 +95,9 @@ resource "aws_security_group" "mongodb" {
 }
 
 output "connection_string" {
-  description = "MongoDB Atlas connection string"
-  value       = try(mongodbatlas_cluster.main.connection_strings[0].private_endpoint[0].srv_connection_string, mongodbatlas_cluster.main.connection_strings[0].standard)
-  sensitive   = true
+  description = "The MongoDB connection string"
+  value = "mongodb+srv://${mongodbatlas_database_user.app.username}:${var.mongodb_password}@${replace(mongodbatlas_cluster.main.connection_strings[0].private_endpoint[0].srv_connection_string, "mongodb+srv://", "")}/kitchensink?retryWrites=true&w=majority"
+  sensitive = true
 }
 
 output "database_name" {
@@ -106,4 +108,10 @@ output "database_name" {
 output "username" {
   description = "MongoDB username"
   value       = mongodbatlas_database_user.app.username
+}
+
+output "password" {
+  description = "MongoDB password"
+  value       = var.mongodb_password
+  sensitive   = true
 }
