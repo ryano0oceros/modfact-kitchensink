@@ -1,13 +1,27 @@
-.git
+# Exclude everything
+*
+
+# Include only what we need
+!.mvn/
+!.mvn/wrapper/
+!.mvn/wrapper/maven-wrapper.properties
+!mvnw
+!pom.xml
+!src/
+!config/
+!deployment/Dockerfile
+
+.git/
 .gitignore
-.github
-target
-docs
+.github/
+target/
+docs/
 README.md
 README.adoc
 LICENSE
 LICENSE.txt
-.quarkus
-infrastructure
-deployment/scripts
-deployment/Dockerfile 
+.quarkus/
+infrastructure/
+deployment/scripts/
+terraform.tfstate
+seed-db.sh 
