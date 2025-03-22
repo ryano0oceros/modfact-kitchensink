@@ -42,9 +42,15 @@ variable "instance_size" {
 variable "mongodb_version" {
   description = "MongoDB version"
   type        = string
+  default     = "6.0"
 }
 
 variable "private_subnet_ids" {
   description = "List of private subnet IDs for the VPC endpoint"
+  type        = list(string)
+}
+
+variable "private_subnet_cidrs" {
+  description = "Private subnet CIDR blocks for MongoDB Atlas IP access list"
   type        = list(string)
 } 

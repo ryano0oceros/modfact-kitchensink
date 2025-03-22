@@ -98,7 +98,7 @@ resource "aws_ecs_task_definition" "app" {
       environment = [
         {
           name  = "MONGODB_URI"
-          value = var.mongodb_uri
+          value = "mongodb://kitchensink-dev:modfactkitchensinklogin@vpce-0925da6a5d34f607e-c2r23p1b.vpce-svc-05d04e90f7b43d643.us-west-2.vpce.amazonaws.com:27017/kitchensink?retryWrites=true&w=majority"
         },
         {
           name  = "QUARKUS_PROFILE"

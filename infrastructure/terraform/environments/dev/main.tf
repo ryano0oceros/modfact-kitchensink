@@ -37,14 +37,15 @@ module "mongodb" {
 
   environment           = var.environment
   project_name         = var.project_name
-  aws_region           = var.aws_region
+  aws_region          = var.aws_region
+  vpc_cidr            = var.vpc_cidr
+  vpc_id              = module.networking.vpc_id
   mongodb_atlas_org_id = var.mongodb_atlas_org_id
   mongodb_password     = var.mongodb_password
-  instance_size        = var.mongodb_instance_size
-  mongodb_version      = var.mongodb_version
-  vpc_cidr            = var.vpc_cidr
-  vpc_id             = module.networking.vpc_id
+  instance_size       = "M10"
+  mongodb_version     = "6.0"
   private_subnet_ids  = module.networking.private_subnet_ids
+  private_subnet_cidrs = module.networking.private_subnet_cidrs
 }
 
 module "ecr" {
