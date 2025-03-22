@@ -40,7 +40,7 @@ jobs:
           role-to-assume: arn:aws:iam::083732173806:role/github-actions-role
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: GitHubActions-${{ github.run_id }}
-          audience: https://token.actions.githubusercontent.com
+          audience: sts.amazonaws.com
         continue-on-error: true
 
       - name: Check AWS credentials configuration
