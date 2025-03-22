@@ -1,16 +1,4 @@
-# Exclude everything
-*
-
-# Include only what we need
-!.mvn/
-!.mvn/wrapper/
-!.mvn/wrapper/maven-wrapper.properties
-!mvnw
-!pom.xml
-!src/
-!config/
-!deployment/Dockerfile
-
+# Exclude specific files and directories
 .git/
 .gitignore
 .github/
@@ -24,4 +12,13 @@ LICENSE.txt
 infrastructure/
 deployment/scripts/
 terraform.tfstate
-seed-db.sh 
+seed-db.sh
+build/
+
+# Note: The following files are NOT ignored and will be included:
+# .mvn/
+# mvnw
+# pom.xml
+# src/
+# config/
+# deployment/Dockerfile 
