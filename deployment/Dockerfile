@@ -7,7 +7,7 @@ RUN chmod +x mvnw
 COPY pom.xml .
 
 # Build stage
-FROM eclipse-temurin:17-jdk-alpine AS build
+FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /workspace/app
 COPY --from=maven-files /staging/ .
 COPY src/ src/
@@ -15,7 +15,7 @@ RUN ./mvnw install -DskipTests
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
 # Run stage
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 VOLUME /tmp
 ARG DEPENDENCY=/workspace/app/target/dependency
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
