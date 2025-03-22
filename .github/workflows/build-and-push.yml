@@ -22,15 +22,47 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Pre-configuration debug
+        run: |
+          echo "Environment variables:"
+          env | sort
+          echo "GitHub context:"
+          echo "Repository: ${{ github.repository }}"
+          echo "Run ID: ${{ github.run_id }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "SHA: ${{ github.sha }}"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4.1.0
         with:
           role-to-assume: arn:aws:iam::083732173806:role/github-actions-role
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: GitHubActions-${{ github.run_id }}
-          audience: sts.amazonaws.com
+          audience: https://token.actions.githubusercontent.com
+        continue-on-error: true
+
+      - name: Check AWS credentials configuration
+        if: failure()
+        run: |
+          echo "AWS credentials configuration failed"
+          echo "Checking environment variables:"
+          echo "AWS_REGION: ${{ env.AWS_REGION }}"
+          echo "AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}"
+          echo "AWS_ROLE_ARN: ${{ env.AWS_ROLE_ARN }}"
+          echo "AWS_WEB_IDENTITY_TOKEN_FILE: ${{ env.AWS_WEB_IDENTITY_TOKEN_FILE }}"
+          echo "AWS_ROLE_SESSION_NAME: ${{ env.AWS_ROLE_SESSION_NAME }}"
+          echo "Checking OIDC token:"
+          if [ -f "${{ env.AWS_WEB_IDENTITY_TOKEN_FILE }}" ]; then
+            echo "Token file exists"
+            cat "${{ env.AWS_WEB_IDENTITY_TOKEN_FILE }}"
+          else
+            echo "Token file does not exist"
+          fi
 
       - name: Debug AWS configuration
+        if: success()
         run: |
           echo "AWS_REGION: ${{ env.AWS_REGION }}"
           echo "AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}"
