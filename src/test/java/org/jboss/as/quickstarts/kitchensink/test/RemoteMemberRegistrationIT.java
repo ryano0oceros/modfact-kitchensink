@@ -16,62 +16,23 @@
  */
 package org.jboss.as.quickstarts.kitchensink.test;
 
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
+import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
+import org.junit.jupiter.api.Test;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.is;
 
-import java.util.logging.Logger;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
-import org.jboss.as.quickstarts.kitchensink.model.Member;
-import org.junit.Assert;
-import org.junit.Test;
-
+@QuarkusTest
 public class RemoteMemberRegistrationIT {
-
-    private static final Logger log = Logger.getLogger(RemoteMemberRegistrationIT.class.getName());
-
-    protected URI getHTTPEndpoint() {
-        String host = getServerHost();
-        if (host == null) {
-            host = "http://localhost:8080/kitchensink";
-        }
-        try {
-            return new URI(host + "/rest/members");
-        } catch (URISyntaxException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    private String getServerHost() {
-        String host = System.getenv("SERVER_HOST");
-        if (host == null) {
-            host = System.getProperty("server.host");
-        }
-        return host;
-    }
 
     @Test
     public void testRegister() throws Exception {
-        Member newMember = new Member();
-        newMember.setName("Jane Doe");
-        newMember.setEmail("jane@mailinator.com");
-        newMember.setPhoneNumber("2125551234");
-        JsonObject json = Json.createObjectBuilder()
-                .add("name", "Jane Doe")
-                .add("email", "jane@mailinator.com")
-                .add("phoneNumber", "2125551234").build();
-        HttpRequest request = HttpRequest.newBuilder(getHTTPEndpoint())
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
-                .build();
-        HttpResponse response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-        Assert.assertEquals(200, response.statusCode());
-        Assert.assertEquals("", response.body().toString() );
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"name\":\"Jane Doe\",\"email\":\"jane@example.com\",\"phoneNumber\":\"1234567890\"}")
+            .when()
+            .post("/rest/members")
+            .then()
+            .statusCode(200);
     }
-
 }

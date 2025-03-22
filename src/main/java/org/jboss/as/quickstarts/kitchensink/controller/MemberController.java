@@ -17,10 +17,8 @@
 package org.jboss.as.quickstarts.kitchensink.controller;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.inject.Model;
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.inject.Produces;
-import jakarta.faces.application.FacesMessage;
-import jakarta.faces.context.FacesContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -31,18 +29,15 @@ import org.jboss.as.quickstarts.kitchensink.service.MemberRegistration;
 // EL name
 // Read more about the @Model stereotype in this FAQ:
 // http://www.cdi-spec.org/faq/#accordion6
-@Model
+@RequestScoped
 public class MemberController {
 
     @Inject
-    private FacesContext facesContext;
-
-    @Inject
-    private MemberRegistration memberRegistration;
+    MemberRegistration memberRegistration;
 
     @Produces
     @Named
-    private Member newMember;
+    Member newMember;
 
     @PostConstruct
     public void initNewMember() {
@@ -52,19 +47,16 @@ public class MemberController {
     public void register() throws Exception {
         try {
             memberRegistration.register(newMember);
-            FacesMessage m = new FacesMessage(FacesMessage.SEVERITY_INFO, "Registered!", "Registration successful");
-            facesContext.addMessage(null, m);
             initNewMember();
         } catch (Exception e) {
             String errorMessage = getRootErrorMessage(e);
-            FacesMessage m = new FacesMessage(FacesMessage.SEVERITY_ERROR, errorMessage, "Registration unsuccessful");
-            facesContext.addMessage(null, m);
+            throw new Exception(errorMessage);
         }
     }
 
     private String getRootErrorMessage(Exception e) {
         // Default to general error message that registration failed.
-        String errorMessage = "Registration failed. See server log for more information";
+        String errorMessage = "Registration failed. See server log for more information.";
         if (e == null) {
             // This shouldn't happen, but return the default messages
             return errorMessage;

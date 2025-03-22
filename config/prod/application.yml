@@ -1,0 +1,12 @@
+quarkus:
+  http:
+    port: 8081
+    host: 0.0.0.0
+  mongodb:
+    connection-string: ${MONGODB_URI}
+    database: kitchensink
+  log:
+    level: INFO
+    category:
+      "org.jboss.as.quickstarts.kitchensink":
+        level: INFO 

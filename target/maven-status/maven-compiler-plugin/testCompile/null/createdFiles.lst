@@ -1,0 +1,4 @@
+org/jboss/as/quickstarts/kitchensink/test/RemoteMemberRegistrationIT.class
+org/jboss/as/quickstarts/kitchensink/test/MemberRegistrationIT.class
+META-INF/panache-archive.marker
+org/jboss/as/quickstarts/kitchensink/rest/MemberResourceTest.class

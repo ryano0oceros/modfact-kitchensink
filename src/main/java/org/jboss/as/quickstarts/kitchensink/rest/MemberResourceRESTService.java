@@ -39,6 +39,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.bson.types.ObjectId;
 
 import org.jboss.as.quickstarts.kitchensink.data.MemberRepository;
 import org.jboss.as.quickstarts.kitchensink.model.Member;
@@ -63,19 +64,19 @@ public class MemberResourceRESTService {
     private MemberRepository repository;
 
     @Inject
-    MemberRegistration registration;
+    private MemberRegistration registration;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<Member> listAllMembers() {
-        return repository.findAllOrderedByName();
+        return repository.findAll().list();
     }
 
     @GET
-    @Path("/{id:[0-9][0-9]*}")
+    @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Member lookupMemberById(@PathParam("id") long id) {
-        Member member = repository.findById(id);
+    public Member lookupMemberById(@PathParam("id") String id) {
+        Member member = repository.findById(new ObjectId(id));
         if (member == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
