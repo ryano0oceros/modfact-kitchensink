@@ -77,8 +77,8 @@ resource "aws_ecs_cluster" "main" {
 # Task Definition
 resource "aws_ecs_task_definition" "app" {
   family                   = "${var.project_name}-${var.environment}-app"
-  network_mode            = "awsvpc"
   requires_compatibilities = ["FARGATE"]
+  network_mode            = "awsvpc"
   cpu                     = 256
   memory                  = 512
   execution_role_arn      = aws_iam_role.ecs_execution_role.arn
@@ -98,7 +98,11 @@ resource "aws_ecs_task_definition" "app" {
       environment = [
         {
           name  = "MONGODB_URI"
-          value = "mongodb+srv://${var.project_name}-${var.environment}:${var.mongodb_password}@${var.mongodb_uri}/kitchensink?retryWrites=true&w=majority"
+          value = var.mongodb_uri
+        },
+        {
+          name  = "QUARKUS_PROFILE"
+          value = "prod"
         }
       ]
       logConfiguration = {

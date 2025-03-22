@@ -3,7 +3,7 @@ quarkus:
     port: 8081
     host: 0.0.0.0
   mongodb:
-    connection-string: mongodb://127.0.0.1:27017/kitchensink?replicaSet=rs0&retryWrites=false
+    connection-string: ${MONGODB_URI}
     database: kitchensink
   log:
     level: DEBUG
