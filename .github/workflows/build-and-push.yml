@@ -28,6 +28,7 @@ jobs:
           role-to-assume: arn:aws:iam::083732173806:role/github-actions-role
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: GitHubActions-${{ github.run_id }}
+          audience: sts.amazonaws.com
 
       - name: Debug AWS configuration
         run: |
@@ -38,6 +39,7 @@ jobs:
           echo "AWS_ROLE_SESSION_NAME: ${{ env.AWS_ROLE_SESSION_NAME }}"
           echo "Repository: ${{ github.repository }}"
           echo "Run ID: ${{ github.run_id }}"
+          aws sts get-caller-identity
 
       - name: Login to Amazon ECR
         id: login-ecr
