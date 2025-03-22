@@ -12,14 +12,12 @@ WORKDIR /workspace/app
 COPY --from=maven-files /staging/ .
 COPY src/ src/
 RUN ./mvnw install -DskipTests
-RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
 # Run stage
 FROM eclipse-temurin:21-jre-alpine
-VOLUME /tmp
-ARG DEPENDENCY=/workspace/app/target/dependency
-COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
-COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
-COPY --from=build /workspace/app/src/main/resources/application.yml /app/
-ENTRYPOINT ["java","-cp","app:app/lib/*","io.quarkus.runner.GeneratedMain"] 
+WORKDIR /app
+COPY --from=build /workspace/app/target/quarkus-app/lib/ /app/lib/
+COPY --from=build /workspace/app/target/quarkus-app/*.jar /app/
+COPY --from=build /workspace/app/target/quarkus-app/app/ /app/app/
+COPY --from=build /workspace/app/target/quarkus-app/quarkus/ /app/quarkus/
+ENTRYPOINT ["java", "-jar", "/app/quarkus-run.jar"] 
