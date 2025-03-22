@@ -30,6 +30,7 @@ jobs:
           role-to-assume: arn:aws:iam::083732173806:role/github-actions-role
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: GitHubActions-${{ github.run_id }}
+          audience: sts.amazonaws.com
 
       - name: Debug AWS configuration
         run: |
