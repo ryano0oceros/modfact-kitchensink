@@ -96,7 +96,7 @@ resource "aws_security_group" "mongodb" {
 
 output "connection_string" {
   description = "The MongoDB connection string"
-  value = "mongodb+srv://${mongodbatlas_database_user.app.username}:${var.mongodb_password}@${replace(mongodbatlas_cluster.main.connection_strings[0].private_endpoint[0].srv_connection_string, "mongodb+srv://", "")}/kitchensink?retryWrites=true&w=majority"
+  value = "mongodb://${mongodbatlas_database_user.app.username}:${var.mongodb_password}@${aws_vpc_endpoint.mongodb.dns_entry[0].dns_name}:27017/kitchensink?retryWrites=true&w=majority"
   sensitive = true
 }
 
