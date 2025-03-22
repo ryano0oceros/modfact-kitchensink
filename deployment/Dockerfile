@@ -11,6 +11,7 @@ FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /workspace/app
 COPY --from=maven-files /staging/ .
 COPY src/ src/
+COPY config/ config/
 RUN ./mvnw install -DskipTests
 
 # Run stage
@@ -20,4 +21,5 @@ COPY --from=build /workspace/app/target/quarkus-app/lib/ /app/lib/
 COPY --from=build /workspace/app/target/quarkus-app/*.jar /app/
 COPY --from=build /workspace/app/target/quarkus-app/app/ /app/app/
 COPY --from=build /workspace/app/target/quarkus-app/quarkus/ /app/quarkus/
+COPY --from=build /workspace/app/config/ /app/config/
 ENTRYPOINT ["java", "-jar", "/app/quarkus-run.jar"] 
