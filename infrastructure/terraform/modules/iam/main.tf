@@ -11,11 +11,12 @@ resource "aws_iam_role" "github_actions" {
           Federated = aws_iam_openid_connect_provider.github_actions.arn
         }
         Condition = {
-          StringEquals = {
-            "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
-          },
           StringLike = {
-            "token.actions.githubusercontent.com:sub": "repo:${var.github_org}/${var.github_repo}:*"
+            "token.actions.githubusercontent.com:sub": "repo:ryano0oceros/modfact-kitchensink:*"
+          },
+          "ForAllValues:StringEquals" = {
+            "token.actions.githubusercontent.com:iss": "https://token.actions.githubusercontent.com",
+            "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
           }
         }
       }
