@@ -1,17 +1,16 @@
 # Maven files staging
 FROM alpine:3.18 as maven-files
 WORKDIR /staging
-# Copy files from the root context
 COPY .mvn/ .mvn/
-COPY mvnw mvnw
-COPY pom.xml pom.xml
+COPY mvnw .
+RUN chmod +x mvnw
+COPY pom.xml .
 
 # Build stage
 FROM eclipse-temurin:17-jdk-alpine AS build
 WORKDIR /workspace/app
-COPY --from=maven-files . .
+COPY --from=maven-files /staging/ .
 COPY src/ src/
-RUN chmod +x mvnw
 RUN ./mvnw install -DskipTests
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
