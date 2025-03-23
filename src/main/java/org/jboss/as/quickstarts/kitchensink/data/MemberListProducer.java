@@ -16,39 +16,19 @@
  */
 package org.jboss.as.quickstarts.kitchensink.data;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.context.RequestScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.event.Reception;
-import jakarta.enterprise.inject.Produces;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import java.util.List;
-
 import org.jboss.as.quickstarts.kitchensink.model.Member;
 
-@RequestScoped
+import java.util.List;
+
+@ApplicationScoped
 public class MemberListProducer {
 
     @Inject
-    private MemberRepository memberRepository;
+    MemberRepository memberRepository;
 
-    private List<Member> members;
-
-    // @Named provides access the return value via the EL variable name "members" in the UI (e.g.
-    // Facelets or JSP view)
-    @Produces
-    @Named
-    public List<Member> getMembers() {
-        return members;
-    }
-
-    public void onMemberListChanged(@Observes(notifyObserver = Reception.IF_EXISTS) final Member member) {
-        retrieveAllMembersOrderedByName();
-    }
-
-    @PostConstruct
-    public void retrieveAllMembersOrderedByName() {
-        members = memberRepository.findAllOrderedByName();
+    public List<Member> getAllMembers() {
+        return memberRepository.listAll();
     }
 }

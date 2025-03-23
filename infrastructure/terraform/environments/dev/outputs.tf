@@ -17,4 +17,9 @@ output "mongodb_username" {
 output "github_actions_role_arn" {
   description = "ARN of the GitHub Actions IAM role"
   value       = module.iam.github_actions_role_arn
+}
+
+output "alb_dns_name" {
+  description = "DNS name of the Application Load Balancer"
+  value       = module.alb.alb_dns_name
 } 
