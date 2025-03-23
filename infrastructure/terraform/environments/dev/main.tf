@@ -46,6 +46,7 @@ module "mongodb" {
   mongodb_version     = "6.0"
   private_subnet_ids  = module.networking.private_subnet_ids
   private_subnet_cidrs = module.networking.private_subnet_cidrs
+  app_security_group_id = module.networking.app_security_group_id
 }
 
 module "ecr" {
@@ -73,13 +74,12 @@ module "ecs" {
   aws_region      = var.aws_region
 
   vpc_id               = module.networking.vpc_id
-  ecr_repository_url    = module.ecr.repository_url
+  ecr_repository_url   = module.ecr.repository_url
+  private_subnets      = module.networking.private_subnet_ids
+  app_security_group_id = module.networking.app_security_group_id
+  target_group_arn     = module.alb.target_group_arn
   mongodb_uri          = module.mongodb.connection_string
   mongodb_password     = var.mongodb_password
-
-  app_security_group_id = module.networking.app_security_group_id
-  private_subnets      = module.networking.private_subnet_ids
-  target_group_arn     = module.alb.target_group_arn
 
   depends_on = [module.ecr]
 }

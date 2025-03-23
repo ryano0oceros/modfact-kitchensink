@@ -5,6 +5,8 @@ quarkus:
   mongodb:
     connection-string: ${MONGODB_URI}
     database: kitchensink
+    tls: true
+    tls-insecure: true
   log:
     level: DEBUG
     category:

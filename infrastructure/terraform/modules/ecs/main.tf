@@ -31,15 +31,36 @@ resource "aws_iam_role" "ecs_task_role" {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Service = "ecs-tasks.amazonaws.com"
+          Service = ["ecs-tasks.amazonaws.com", "ssm.amazonaws.com"]
         }
       }
     ]
   })
 }
 
-resource "aws_iam_role_policy" "ecs_task_role_policy" {
-  name = "${var.project_name}-${var.environment}-ecs-task-role-policy"
+resource "aws_iam_role_policy" "ecs_task_execution_policy" {
+  name = "${var.project_name}-${var.environment}-ecs-task-execution-policy"
+  role = aws_iam_role.ecs_task_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "ecs_task_ssm_policy" {
+  name = "${var.project_name}-${var.environment}-ecs-task-ssm-policy"
   role = aws_iam_role.ecs_task_role.id
 
   policy = jsonencode({
@@ -51,7 +72,9 @@ resource "aws_iam_role_policy" "ecs_task_role_policy" {
           "ssmmessages:CreateControlChannel",
           "ssmmessages:CreateDataChannel",
           "ssmmessages:OpenControlChannel",
-          "ssmmessages:OpenDataChannel"
+          "ssmmessages:OpenDataChannel",
+          "ssm:UpdateInstanceInformation",
+          "ssm:DescribeInstanceProperties"
         ]
         Resource = "*"
       }
@@ -77,8 +100,8 @@ resource "aws_ecs_cluster" "main" {
 # Task Definition
 resource "aws_ecs_task_definition" "app" {
   family                   = "${var.project_name}-${var.environment}-app"
-  requires_compatibilities = ["FARGATE"]
   network_mode            = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
   cpu                     = 256
   memory                  = 512
   execution_role_arn      = aws_iam_role.ecs_execution_role.arn
@@ -88,21 +111,22 @@ resource "aws_ecs_task_definition" "app" {
     {
       name  = "${var.project_name}-${var.environment}-app"
       image = "${var.ecr_repository_url}:latest"
+      command = null
       portMappings = [
         {
-          containerPort = 8080
-          hostPort      = 8080
+          containerPort = 8081
+          hostPort      = 8081
           protocol      = "tcp"
         }
       ]
       environment = [
         {
           name  = "MONGODB_URI"
-          value = "mongodb://kitchensink-dev:modfactkitchensinklogin@vpce-0925da6a5d34f607e-c2r23p1b.vpce-svc-05d04e90f7b43d643.us-west-2.vpce.amazonaws.com:27017/kitchensink?retryWrites=true&w=majority"
+          value = var.mongodb_uri
         },
         {
           name  = "QUARKUS_PROFILE"
-          value = "prod"
+          value = "dev"
         }
       ]
       logConfiguration = {
@@ -112,6 +136,17 @@ resource "aws_ecs_task_definition" "app" {
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "ecs"
         }
+      }
+      linuxParameters = {
+        initProcessEnabled = true
+      }
+      essential = true
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -f http://localhost:8081/api/members || exit 1"]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 60
       }
     }
   ])
@@ -139,10 +174,21 @@ resource "aws_ecs_service" "app" {
   load_balancer {
     target_group_arn = var.target_group_arn
     container_name   = "${var.project_name}-${var.environment}-app"
-    container_port   = 8080
+    container_port   = 8081
   }
 
-  depends_on = [var.target_group_arn]
+  deployment_controller {
+    type = "ECS"
+  }
+
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
+  health_check_grace_period_seconds = 120
+
+  enable_execute_command = true
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-app"

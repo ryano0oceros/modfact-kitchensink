@@ -3,6 +3,10 @@ terraform {
     mongodbatlas = {
       source = "mongodb/mongodbatlas"
     }
+    time = {
+      source = "hashicorp/time"
+      version = "~> 0.10.0"
+    }
   }
 }
 
@@ -31,6 +35,17 @@ resource "mongodbatlas_cluster" "main" {
   tags {
     key   = "Environment"
     value = var.environment
+  }
+
+  # Configure private endpoint access
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "US_WEST_2"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
   }
 }
 
@@ -61,7 +76,7 @@ resource "aws_vpc_endpoint" "mongodb" {
   security_group_ids = [aws_security_group.mongodb.id]
 }
 
-# Create the private endpoint service
+# Create the private endpoint service and wait for it to be available
 resource "mongodbatlas_privatelink_endpoint_service" "main" {
   project_id          = mongodbatlas_project.main.id
   private_link_id     = mongodbatlas_privatelink_endpoint.main.private_link_id
@@ -75,10 +90,17 @@ resource "aws_security_group" "mongodb" {
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port   = 27017
-    to_port     = 27017
+    from_port   = 1024
+    to_port     = 1026
     protocol    = "tcp"
     cidr_blocks = var.private_subnet_cidrs
+  }
+
+  ingress {
+    from_port       = 1024
+    to_port         = 1026
+    protocol        = "tcp"
+    security_groups = [var.app_security_group_id]
   }
 
   egress {
@@ -95,9 +117,8 @@ resource "aws_security_group" "mongodb" {
 }
 
 output "connection_string" {
-  description = "The MongoDB connection string"
-  value = "mongodb://${mongodbatlas_database_user.app.username}:${var.mongodb_password}@${aws_vpc_endpoint.mongodb.dns_entry[0].dns_name}:27017/kitchensink?retryWrites=true&w=majority"
   sensitive = true
+  value     = "mongodb://${mongodbatlas_database_user.app.username}:${var.mongodb_password}@${aws_vpc_endpoint.mongodb.dns_entry[0].dns_name}:1025/?ssl=true&authSource=admin&retryWrites=true&w=majority&appName=kitchensink-dev&tlsAllowInvalidHostnames=true&directConnection=true"
 }
 
 output "database_name" {

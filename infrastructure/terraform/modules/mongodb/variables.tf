@@ -51,6 +51,11 @@ variable "private_subnet_ids" {
 }
 
 variable "private_subnet_cidrs" {
-  description = "Private subnet CIDR blocks for MongoDB Atlas IP access list"
+  description = "CIDR blocks for private subnets"
   type        = list(string)
+}
+
+variable "app_security_group_id" {
+  description = "Security group ID of the ECS task"
+  type        = string
 } 

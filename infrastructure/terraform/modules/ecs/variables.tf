@@ -29,7 +29,7 @@ variable "app_security_group_id" {
 }
 
 variable "mongodb_uri" {
-  description = "MongoDB connection string"
+  description = "MongoDB connection URI"
   type        = string
   sensitive   = true
 }
