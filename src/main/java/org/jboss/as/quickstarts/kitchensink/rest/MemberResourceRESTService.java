@@ -29,151 +29,238 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
 import jakarta.validation.Validator;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+
 import org.bson.types.ObjectId;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import org.jboss.as.quickstarts.kitchensink.data.MemberRepository;
 import org.jboss.as.quickstarts.kitchensink.model.Member;
 import org.jboss.as.quickstarts.kitchensink.service.MemberRegistration;
 
 /**
- * JAX-RS Example
- * <p/>
- * This class produces a RESTful service to read/write the contents of the members collection.
+ * REST API for managing members
  */
-@Path("/rest/members")
+@Path("/api/v1/members")
 @RequestScoped
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+@Tag(name = "Member Resource", description = "Operations for managing members")
 public class MemberResourceRESTService {
 
     @Inject
-    private Logger log;
+    Logger log;
 
     @Inject
-    private Validator validator;
+    Validator validator;
 
     @Inject
-    private MemberRepository repository;
+    MemberRepository repository;
 
     @Inject
-    private MemberRegistration registration;
+    MemberRegistration registration;
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get all members", description = "Returns a list of all registered members")
+    @APIResponse(
+        responseCode = "200",
+        description = "List of members",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(type = SchemaType.ARRAY, implementation = Member.class)
+        )
+    )
     public List<Member> listAllMembers() {
         return repository.findAll().list();
     }
 
     @GET
     @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Member lookupMemberById(@PathParam("id") String id) {
+    @Operation(summary = "Get member by ID", description = "Returns a member by their ID")
+    @APIResponse(
+        responseCode = "200",
+        description = "The member",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = Member.class)
+        )
+    )
+    @APIResponse(
+        responseCode = "404",
+        description = "Member not found"
+    )
+    public Member getMember(
+            @Parameter(description = "Member ID", required = true)
+            @PathParam("id") String id) {
         Member member = repository.findById(new ObjectId(id));
         if (member == null) {
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            throw new WebApplicationException(Status.NOT_FOUND);
         }
         return member;
     }
 
-    /**
-     * Creates a new member from the values provided. Performs validation, and will return a JAX-RS response with either 200 ok,
-     * or with a map of fields, and related errors.
-     */
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response createMember(Member member) {
-
-        Response.ResponseBuilder builder = null;
-
+    @Operation(summary = "Create new member", description = "Creates a new member")
+    @APIResponse(
+        responseCode = "201",
+        description = "Member created",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = Member.class)
+        )
+    )
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid input"
+    )
+    @APIResponse(
+        responseCode = "409",
+        description = "Email already exists"
+    )
+    public Response createMember(
+            @Parameter(description = "Member to create", required = true)
+            Member member) {
         try {
-            // Validates member using bean validation
             validateMember(member);
-
             registration.register(member);
-
-            // Create an "ok" response
-            builder = Response.ok();
+            return Response.status(Status.CREATED)
+                    .entity(member)
+                    .build();
         } catch (ConstraintViolationException ce) {
-            // Handle bean validation issues
-            builder = createViolationResponse(ce.getConstraintViolations());
+            return createViolationResponse(ce.getConstraintViolations()).build();
         } catch (ValidationException e) {
-            // Handle the unique constrain violation
             Map<String, String> responseObj = new HashMap<>();
-            responseObj.put("email", "Email taken");
-            builder = Response.status(Response.Status.CONFLICT).entity(responseObj);
+            responseObj.put("email", "Email already exists");
+            return Response.status(Status.CONFLICT)
+                    .entity(responseObj)
+                    .build();
         } catch (Exception e) {
-            // Handle generic exceptions
             Map<String, String> responseObj = new HashMap<>();
             responseObj.put("error", e.getMessage());
-            builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(responseObj)
+                    .build();
         }
-
-        return builder.build();
     }
 
-    /**
-     * <p>
-     * Validates the given Member variable and throws validation exceptions based on the type of error. If the error is standard
-     * bean validation errors then it will throw a ConstraintValidationException with the set of the constraints violated.
-     * </p>
-     * <p>
-     * If the error is caused because an existing member with the same email is registered it throws a regular validation
-     * exception so that it can be interpreted separately.
-     * </p>
-     *
-     * @param member Member to be validated
-     * @throws ConstraintViolationException If Bean Validation errors exist
-     * @throws ValidationException If member with the same email already exists
-     */
-    private void validateMember(Member member) throws ConstraintViolationException, ValidationException {
-        // Create a bean validator and check for issues.
-        Set<ConstraintViolation<Member>> violations = validator.validate(member);
+    @PUT
+    @Path("/{id}")
+    @Operation(summary = "Update member", description = "Updates an existing member")
+    @APIResponse(
+        responseCode = "200",
+        description = "Member updated",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = Member.class)
+        )
+    )
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid input"
+    )
+    @APIResponse(
+        responseCode = "404",
+        description = "Member not found"
+    )
+    @APIResponse(
+        responseCode = "409",
+        description = "Email already exists"
+    )
+    public Response updateMember(
+            @Parameter(description = "Member ID", required = true)
+            @PathParam("id") String id,
+            @Parameter(description = "Updated member details", required = true)
+            Member member) {
+        Member existingMember = repository.findById(new ObjectId(id));
+        if (existingMember == null) {
+            throw new WebApplicationException(Status.NOT_FOUND);
+        }
 
+        try {
+            // Only validate email uniqueness if it changed
+            if (!existingMember.getEmail().equals(member.getEmail())) {
+                validateMember(member);
+            } else {
+                Set<ConstraintViolation<Member>> violations = validator.validate(member);
+                if (!violations.isEmpty()) {
+                    throw new ConstraintViolationException(new HashSet<>(violations));
+                }
+            }
+
+            member.setId(existingMember.getId());
+            repository.update(member);
+            return Response.ok(member).build();
+        } catch (ConstraintViolationException ce) {
+            return createViolationResponse(ce.getConstraintViolations()).build();
+        } catch (ValidationException e) {
+            Map<String, String> responseObj = new HashMap<>();
+            responseObj.put("email", "Email already exists");
+            return Response.status(Status.CONFLICT)
+                    .entity(responseObj)
+                    .build();
+        } catch (Exception e) {
+            Map<String, String> responseObj = new HashMap<>();
+            responseObj.put("error", e.getMessage());
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(responseObj)
+                    .build();
+        }
+    }
+
+    @DELETE
+    @Path("/{id}")
+    @Operation(summary = "Delete member", description = "Deletes a member")
+    @APIResponse(
+        responseCode = "204",
+        description = "Member deleted"
+    )
+    @APIResponse(
+        responseCode = "404",
+        description = "Member not found"
+    )
+    public Response deleteMember(
+            @Parameter(description = "Member ID", required = true)
+            @PathParam("id") String id) {
+        Member member = repository.findById(new ObjectId(id));
+        if (member == null) {
+            throw new WebApplicationException(Status.NOT_FOUND);
+        }
+        repository.delete(member);
+        return Response.noContent().build();
+    }
+
+    private void validateMember(Member member) throws ConstraintViolationException, ValidationException {
+        Set<ConstraintViolation<Member>> violations = validator.validate(member);
         if (!violations.isEmpty()) {
             throw new ConstraintViolationException(new HashSet<>(violations));
         }
 
-        // Check the uniqueness of the email address
         if (emailAlreadyExists(member.getEmail())) {
-            throw new ValidationException("Unique Email Violation");
+            throw new ValidationException("Email already exists");
         }
     }
 
-    /**
-     * Creates a JAX-RS "Bad Request" response including a map of all violation fields, and their message. This can then be used
-     * by clients to show violations.
-     *
-     * @param violations A set of violations that needs to be reported
-     * @return JAX-RS response containing all violations
-     */
     private Response.ResponseBuilder createViolationResponse(Set<ConstraintViolation<?>> violations) {
         log.fine("Validation completed. violations found: " + violations.size());
 
         Map<String, String> responseObj = new HashMap<>();
-
         for (ConstraintViolation<?> violation : violations) {
             responseObj.put(violation.getPropertyPath().toString(), violation.getMessage());
         }
 
-        return Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
+        return Response.status(Status.BAD_REQUEST).entity(responseObj);
     }
 
-    /**
-     * Checks if a member with the same email address is already registered. This is the only way to easily capture the
-     * "@UniqueConstraint(columnNames = "email")" constraint from the Member class.
-     *
-     * @param email The email to check
-     * @return True if the email already exists, and false otherwise
-     */
-    public boolean emailAlreadyExists(String email) {
+    private boolean emailAlreadyExists(String email) {
         Member member = null;
         try {
             member = repository.findByEmail(email);

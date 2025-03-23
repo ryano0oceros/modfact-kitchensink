@@ -17,8 +17,8 @@
 package org.jboss.as.quickstarts.kitchensink.data;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
+import io.quarkus.panache.common.Parameters;
 import java.util.List;
 
 import org.jboss.as.quickstarts.kitchensink.model.Member;
@@ -32,5 +32,9 @@ public class MemberRepository implements PanacheMongoRepository<Member> {
 
     public List<Member> findAllOrderedByName() {
         return listAll();
+    }
+
+    public void update(Member member) {
+        update("{'$set': ?1}", Parameters.with("1", member).map());
     }
 }
