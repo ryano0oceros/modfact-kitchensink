@@ -29,6 +29,9 @@ public class SeedDataCommand implements QuarkusApplication {
         } else {
             System.out.println("Database already contains data, skipping seed data");
         }
+        
+        // Keep the application running
+        Thread.currentThread().join();
         return 0;
     }
 } 
