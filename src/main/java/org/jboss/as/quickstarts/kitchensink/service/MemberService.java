@@ -1,14 +1,20 @@
 package org.jboss.as.quickstarts.kitchensink.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
+import org.bson.types.ObjectId;
+import org.jboss.as.quickstarts.kitchensink.data.MemberRepository;
 import org.jboss.as.quickstarts.kitchensink.model.Member;
 
 import java.util.List;
 
 @ApplicationScoped
 public class MemberService {
+
+    @Inject
+    MemberRepository repository;
 
     @Transactional
     public void register(Member member) throws Exception {
@@ -17,21 +23,25 @@ public class MemberService {
         }
 
         try {
-            member.persist();
+            repository.persist(member);
         } catch (ConstraintViolationException e) {
             throw new Exception("Invalid member data", e);
         }
     }
 
     public List<Member> findAllMembers() {
-        return Member.listAll();
+        return repository.listAll();
     }
 
     public Member findById(String id) {
-        return Member.findById(id);
+        return repository.findById(new ObjectId(id));
     }
 
     public Member findByEmail(String email) {
-        return Member.find("email", email).firstResult();
+        return repository.findByEmail(email);
+    }
+
+    public long count() {
+        return repository.count();
     }
 } 

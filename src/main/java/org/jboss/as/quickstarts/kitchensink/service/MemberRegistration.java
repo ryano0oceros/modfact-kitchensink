@@ -16,6 +16,7 @@
  */
 package org.jboss.as.quickstarts.kitchensink.service;
 
+import org.jboss.as.quickstarts.kitchensink.data.MemberRepository;
 import org.jboss.as.quickstarts.kitchensink.model.Member;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -33,10 +34,13 @@ public class MemberRegistration {
     @Inject
     private Event<Member> memberEventSrc;
 
+    @Inject
+    private MemberRepository repository;
+
     @Transactional
     public void register(Member member) throws Exception {
         log.info("Registering " + member.getName());
-        member.persist();
+        repository.persist(member);
         memberEventSrc.fire(member);
     }
 }

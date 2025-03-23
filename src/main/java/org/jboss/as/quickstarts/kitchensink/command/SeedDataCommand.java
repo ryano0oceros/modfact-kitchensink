@@ -6,6 +6,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.as.quickstarts.kitchensink.model.Member;
 import org.jboss.as.quickstarts.kitchensink.service.MemberRegistration;
+import org.jboss.as.quickstarts.kitchensink.service.MemberService;
 
 @QuarkusMain
 @ApplicationScoped
@@ -14,10 +15,13 @@ public class SeedDataCommand implements QuarkusApplication {
     @Inject
     MemberRegistration memberRegistration;
 
+    @Inject
+    MemberService memberService;
+
     @Override
     public int run(String... args) throws Exception {
         // Check if we already have data
-        if (Member.count() == 0) {
+        if (memberService.count() == 0) {
             // Create seed data
             Member seedMember = new Member();
             seedMember.setName("John Smith");
