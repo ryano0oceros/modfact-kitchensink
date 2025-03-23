@@ -50,7 +50,7 @@ import org.jboss.as.quickstarts.kitchensink.service.MemberRegistration;
 /**
  * REST API for managing members
  */
-@Path("/api/v1/members")
+@Path("/rest/api/v1/members")
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
