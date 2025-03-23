@@ -25,7 +25,6 @@ import java.util.logging.Logger;
 
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
-import jakarta.persistence.NoResultException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
@@ -48,9 +47,9 @@ import org.jboss.as.quickstarts.kitchensink.service.MemberRegistration;
 /**
  * JAX-RS Example
  * <p/>
- * This class produces a RESTful service to read/write the contents of the members table.
+ * This class produces a RESTful service to read/write the contents of the members collection.
  */
-@Path("/members")
+@Path("/rest/members")
 @RequestScoped
 public class MemberResourceRESTService {
 
@@ -178,7 +177,7 @@ public class MemberResourceRESTService {
         Member member = null;
         try {
             member = repository.findByEmail(email);
-        } catch (NoResultException e) {
+        } catch (Exception e) {
             // ignore
         }
         return member != null;
