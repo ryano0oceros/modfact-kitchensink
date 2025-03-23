@@ -20,18 +20,26 @@ import jakarta.enterprise.context.ApplicationScoped;
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 import io.quarkus.panache.common.Parameters;
 import java.util.List;
+import java.util.Optional;
 
 import org.jboss.as.quickstarts.kitchensink.model.Member;
 
 @ApplicationScoped
 public class MemberRepository implements PanacheMongoRepository<Member> {
 
-    public Member findByEmail(String email) {
-        return find("email", email).firstResult();
+    public Optional<Member> findByEmail(String email) {
+        return find("email", email).firstResultOptional();
     }
 
     public List<Member> findAllOrderedByName() {
-        return listAll();
+        return find("{}").list();
+    }
+
+    public void persist(Member member) {
+        if (findByEmail(member.email()).isPresent()) {
+            throw new IllegalStateException("Email already exists");
+        }
+        PanacheMongoRepository.super.persist(member);
     }
 
     public void update(Member member) {

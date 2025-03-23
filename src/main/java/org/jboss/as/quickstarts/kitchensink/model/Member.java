@@ -25,55 +25,45 @@ import jakarta.validation.constraints.Size;
 import org.bson.types.ObjectId;
 
 @MongoEntity(collection = "members")
-public class Member {
-
-    private ObjectId id;
+public record Member(
+    ObjectId id,
 
     @NotNull
     @NotEmpty
     @Size(min = 1, max = 50)
-    private String name;
+    String name,
 
     @NotNull
     @NotEmpty
     @Pattern(regexp = "[^@]+@[^@]+\\.[^@]+", message = "Invalid email format")
-    private String email;
+    String email,
 
     @NotNull
     @NotEmpty
     @Size(min = 10, max = 12)
     @Digits(fraction = 0, integer = 12, message = "Invalid phone number")
-    private String phoneNumber;
-
-    public ObjectId getId() {
-        return id;
+    String phoneNumber
+) {
+    // Constructor with validation
+    public Member {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Name cannot be null or blank");
+        }
+        if (email == null || !email.matches("[^@]+@[^@]+\\.[^@]+")) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
+        if (phoneNumber == null || !phoneNumber.matches("\\d{10,12}")) {
+            throw new IllegalArgumentException("Invalid phone number format");
+        }
     }
 
-    public void setId(ObjectId id) {
-        this.id = id;
+    // Factory method for creating a new member
+    public static Member createMember(String name, String email, String phoneNumber) {
+        return new Member(null, name, email, phoneNumber);
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    // Utility method to create a copy with a new ID
+    public Member withId(ObjectId newId) {
+        return new Member(newId, name(), email(), phoneNumber());
     }
 }

@@ -23,8 +23,12 @@ import java.util.List;
 @Tag(name = "Member Resource", description = "Operations for managing members")
 public class MemberResource {
 
+    private final MemberService memberService;
+
     @Inject
-    private MemberService memberService;
+    public MemberResource(MemberService memberService) {
+        this.memberService = memberService;
+    }
 
     @GET
     @Operation(summary = "List all members", description = "Returns a list of all registered members")
@@ -36,8 +40,9 @@ public class MemberResource {
             schema = @Schema(implementation = Member.class)
         )
     )
-    public List<Member> listAllMembers() {
-        return memberService.findAllMembers();
+    public Response listAllMembers() {
+        var members = memberService.findAllMembers();
+        return Response.ok(members).build();
     }
 
     @GET
@@ -56,11 +61,9 @@ public class MemberResource {
         description = "Member not found"
     )
     public Response getMemberById(@PathParam("id") String id) {
-        Member member = memberService.findById(id);
-        if (member == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(member).build();
+        return memberService.findById(id)
+            .map(member -> Response.ok(member).build())
+            .orElse(Response.status(Response.Status.NOT_FOUND).build());
     }
 
     @POST
@@ -79,10 +82,16 @@ public class MemberResource {
     )
     public Response createMember(@Valid Member member) {
         try {
-            memberService.register(member);
-            return Response.status(Response.Status.CREATED).entity(member).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+            var createdMember = memberService.register(member);
+            return Response.status(Response.Status.CREATED)
+                .entity(createdMember)
+                .build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new ErrorResponse(e.getMessage()))
+                .build();
         }
     }
+
+    private record ErrorResponse(String message) {}
 } 

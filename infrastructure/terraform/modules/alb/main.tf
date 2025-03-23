@@ -5,10 +5,46 @@ resource "aws_lb" "app" {
   security_groups    = [aws_security_group.alb.id]
   subnets           = var.public_subnets
 
+  access_logs {
+    bucket  = aws_s3_bucket.alb_logs.id
+    prefix  = "alb-logs"
+    enabled = true
+  }
+
   tags = {
     Name        = "${var.environment}-${var.project_name}-alb"
     Environment = var.environment
   }
+}
+
+# S3 bucket for ALB access logs
+resource "aws_s3_bucket" "alb_logs" {
+  bucket = "${var.environment}-${var.project_name}-alb-logs"
+  force_destroy = true
+
+  tags = {
+    Name        = "${var.environment}-${var.project_name}-alb-logs"
+    Environment = var.environment
+  }
+}
+
+# S3 bucket policy to allow ALB to write logs
+resource "aws_s3_bucket_policy" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::797873946194:root"  # AWS ALB service account for us-west-2
+        }
+        Action = "s3:PutObject"
+        Resource = "${aws_s3_bucket.alb_logs.arn}/*"
+      }
+    ]
+  })
 }
 
 resource "aws_lb_target_group" "app" {
@@ -23,7 +59,7 @@ resource "aws_lb_target_group" "app" {
     healthy_threshold   = 2
     interval            = 60
     matcher             = "200-499"
-    path                = "/health"
+    path                = "/api/v1/health"
     port                = "traffic-port"
     protocol            = "HTTP"
     timeout             = 30
