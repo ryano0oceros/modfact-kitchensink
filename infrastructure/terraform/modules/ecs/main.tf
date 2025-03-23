@@ -121,8 +121,12 @@ resource "aws_ecs_task_definition" "app" {
       ]
       environment = [
         {
-          name  = "MONGODB_URI"
+          name  = "MONGODB_CONNECTION_STRING"
           value = var.mongodb_uri
+        },
+        {
+          name  = "MONGODB_DATABASE"
+          value = "kitchensink"
         },
         {
           name  = "QUARKUS_PROFILE"
@@ -142,11 +146,11 @@ resource "aws_ecs_task_definition" "app" {
       }
       essential = true
       healthCheck = {
-        command     = ["CMD-SHELL", "curl -f http://localhost:8081/api/members || exit 1"]
-        interval    = 30
-        timeout     = 5
-        retries     = 3
-        startPeriod = 60
+        command     = ["CMD-SHELL", "curl -f http://localhost:8081/health || exit 1"]
+        interval    = 60
+        timeout     = 30
+        retries     = 5
+        startPeriod = 120
       }
     }
   ])
@@ -186,7 +190,7 @@ resource "aws_ecs_service" "app" {
     rollback = true
   }
 
-  health_check_grace_period_seconds = 120
+  health_check_grace_period_seconds = 300
 
   enable_execute_command = true
 
