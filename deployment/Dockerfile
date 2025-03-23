@@ -16,6 +16,7 @@ RUN ./mvnw install -DskipTests
 
 # Run stage
 FROM eclipse-temurin:21-jre-alpine
+RUN apk add --no-cache curl
 WORKDIR /app
 COPY --from=build /workspace/app/target/quarkus-app/lib/ /app/lib/
 COPY --from=build /workspace/app/target/quarkus-app/*.jar /app/
