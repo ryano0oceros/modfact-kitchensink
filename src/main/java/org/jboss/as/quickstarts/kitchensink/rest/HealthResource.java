@@ -12,7 +12,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
-@Path("/api/v1/health")
+@Path("/health")
 @ApplicationScoped
 @Tag(name = "Health", description = "Health check endpoint")
 public class HealthResource {
