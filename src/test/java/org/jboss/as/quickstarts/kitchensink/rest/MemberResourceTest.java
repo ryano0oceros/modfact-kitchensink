@@ -20,10 +20,11 @@ public class MemberResourceTest {
 
     @Test
     public void testCreateMember() throws Exception {
-        Member member = new Member();
-        member.setName("John Doe");
-        member.setEmail("john@example.com");
-        member.setPhoneNumber("1234567890");
+        Member member = Member.createMember(
+            "John Doe",
+            "john@example.com",
+            "1234567890"
+        );
 
         given()
             .contentType("application/json")
@@ -40,13 +41,14 @@ public class MemberResourceTest {
 
     @Test
     public void testGetMember() throws Exception {
-        Member member = new Member();
-        member.setName("Jane Doe");
-        member.setEmail("jane@example.com");
-        member.setPhoneNumber("0987654321");
+        Member member = Member.createMember(
+            "Jane Doe",
+            "jane@example.com",
+            "0987654321"
+        );
 
         memberService.register(member);
-        String id = member.getId().toString();
+        String id = member.id().toString();
 
         given()
             .when()
@@ -60,15 +62,17 @@ public class MemberResourceTest {
 
     @Test
     public void testListMembers() throws Exception {
-        Member member1 = new Member();
-        member1.setName("Test User 1");
-        member1.setEmail("test1@example.com");
-        member1.setPhoneNumber("1111111111");
+        Member member1 = Member.createMember(
+            "Test User 1",
+            "test1@example.com",
+            "1111111111"
+        );
 
-        Member member2 = new Member();
-        member2.setName("Test User 2");
-        member2.setEmail("test2@example.com");
-        member2.setPhoneNumber("2222222222");
+        Member member2 = Member.createMember(
+            "Test User 2",
+            "test2@example.com",
+            "2222222222"
+        );
 
         memberService.register(member1);
         memberService.register(member2);

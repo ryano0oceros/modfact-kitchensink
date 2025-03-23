@@ -36,12 +36,13 @@ public class MemberRegistrationIT {
 
     @Test
     public void testRegister() throws Exception {
-        Member newMember = new Member();
-        newMember.setName("Jane Doe");
-        newMember.setEmail("jane@example.com");
-        newMember.setPhoneNumber("1234567890");
+        Member newMember = Member.createMember(
+            "Jane Doe",
+            "jane@example.com",
+            "1234567890"
+        );
 
         memberRegistration.register(newMember);
-        assertNotNull(newMember.getId());
+        assertNotNull(newMember.id());
     }
 }
