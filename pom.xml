@@ -105,9 +105,9 @@
       <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.bucket4j</groupId>
-      <artifactId>bucket4j-core</artifactId>
-      <version>8.10.0</version>
+      <groupId>io.quarkiverse.bucket4j</groupId>
+      <artifactId>quarkus-bucket4j</artifactId>
+      <version>1.0.4</version>
     </dependency>
   </dependencies>
   <build>
