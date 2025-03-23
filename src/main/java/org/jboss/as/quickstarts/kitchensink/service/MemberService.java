@@ -48,7 +48,7 @@ public class MemberService {
     }
 
     public Optional<Member> findByEmail(String email) {
-        return Optional.ofNullable(repository.findByEmail(email));
+        return repository.findByEmail(email);
     }
 
     public long count() {

@@ -24,14 +24,17 @@ import org.jboss.as.quickstarts.kitchensink.service.MemberRegistration;
 @ApplicationScoped
 public class MemberController {
 
-    @Inject
-    private MemberRegistration memberRegistration;
-
+    private final MemberRegistration memberRegistration;
     private Member newMember;
+
+    @Inject
+    public MemberController(MemberRegistration memberRegistration) {
+        this.memberRegistration = memberRegistration;
+    }
 
     public Member getNewMember() {
         if (newMember == null) {
-            newMember = new Member();
+            newMember = Member.createMember("", "", "");
         }
         return newMember;
     }

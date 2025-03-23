@@ -28,18 +28,20 @@ import java.util.logging.Logger;
 @ApplicationScoped
 public class MemberRegistration {
 
-    @Inject
-    private Logger log;
+    private final Logger log;
+    private final Event<Member> memberEventSrc;
+    private final MemberRepository repository;
 
     @Inject
-    private Event<Member> memberEventSrc;
-
-    @Inject
-    private MemberRepository repository;
+    public MemberRegistration(Logger log, Event<Member> memberEventSrc, MemberRepository repository) {
+        this.log = log;
+        this.memberEventSrc = memberEventSrc;
+        this.repository = repository;
+    }
 
     @Transactional
     public void register(Member member) throws Exception {
-        log.info("Registering " + member.getName());
+        log.info("Registering " + member.name());
         repository.persist(member);
         memberEventSrc.fire(member);
     }

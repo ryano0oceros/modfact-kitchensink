@@ -22,11 +22,12 @@ public class SeedDataCommand implements QuarkusApplication {
     public int run(String... args) throws Exception {
         // Check if we already have data
         if (memberService.count() == 0) {
-            // Create seed data
-            Member seedMember = new Member();
-            seedMember.setName("John Smith");
-            seedMember.setEmail("john.smith@mailinator.com");
-            seedMember.setPhoneNumber("2125551212");
+            // Create seed data using the factory method
+            Member seedMember = Member.createMember(
+                "John Smith",
+                "john.smith@mailinator.com",
+                "2125551212"
+            );
             
             memberRegistration.register(seedMember);
             System.out.println("Seed data loaded successfully");
