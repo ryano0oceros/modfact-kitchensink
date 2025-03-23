@@ -17,7 +17,7 @@ import org.jboss.as.quickstarts.kitchensink.service.MemberService;
 
 import java.util.List;
 
-@Path("/api/v1/members")
+@Path("/v1/members")
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
