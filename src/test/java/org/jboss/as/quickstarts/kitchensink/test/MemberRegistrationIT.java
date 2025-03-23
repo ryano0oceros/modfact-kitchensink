@@ -42,6 +42,6 @@ public class MemberRegistrationIT {
         newMember.setPhoneNumber("1234567890");
 
         memberRegistration.register(newMember);
-        assertNotNull(newMember.id);
+        assertNotNull(newMember.getId());
     }
 }

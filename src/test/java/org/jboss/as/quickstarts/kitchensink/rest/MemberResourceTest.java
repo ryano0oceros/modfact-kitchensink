@@ -46,7 +46,7 @@ public class MemberResourceTest {
         member.setPhoneNumber("0987654321");
 
         memberService.register(member);
-        String id = member.id.toString();
+        String id = member.getId().toString();
 
         given()
             .when()
